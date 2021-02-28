@@ -2,19 +2,20 @@
 # - name: users
 #   description: users API
 
-# paths:
-# # [GET] users
-#   /users:
-#     get:
-#       tags:
-#       - users
-#       summary: Find All Users
-#       responses:
-#         200:
-#           description: 'OK'
-#         500:
-#           description: 'Server Error'
-
+paths:
+  # [GET] api entry point
+  /v1:
+    get:
+      summary: api entry point
+      responses:
+        200:
+          description: 'OK'
+          content:
+            'text/plain':
+              schema:
+                type: string
+        500:
+          description: 'Server Error'
 # # [POST] users
 #     post:
 #       tags:

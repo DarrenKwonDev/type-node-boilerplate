@@ -35,6 +35,7 @@ class App {
     this.connectToDatabase();
     this.initializeRoutes(routes);
     this.initializeMiddlewares();
+    this.initializeSwagger();
     this.initializeErrorHandling();
   }
 
@@ -84,17 +85,23 @@ class App {
   private initializeSwagger() {
     const options = {
       swaggerDefinition: {
+        openapi: '3.0.0',
         info: {
-          title: 'REST API',
+          title: 'Put Your API Name',
           version: '1.0.0',
           description: 'Example docs',
         },
+        servers: [
+          {
+            url: `http://localhost:${this.port}`,
+          },
+        ],
       },
       apis: ['swagger.yaml'],
     };
 
     const specs = swaggerJSDoc(options);
-    this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+    this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, { explorer: true }));
   }
 
   private initializeErrorHandling() {
