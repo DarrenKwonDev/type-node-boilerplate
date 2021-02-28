@@ -1,0 +1,85 @@
+import express from 'express';
+import Route from './interfaces/route.interface';
+
+// middleware
+import morgan from 'morgan';
+import cors from 'cors';
+import hpp from 'hpp';
+import helmet from 'helmet';
+import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import { logger, stream } from './utils/logger';
+
+// typeorm
+import { createConnection } from 'typeorm';
+import connectionOptions from './database';
+import errorMiddleware from './middlewares/error.middleware';
+
+class App {
+  public app: express.Application;
+  public port: string | undefined;
+  public env: string | undefined;
+  public apiVer: string | undefined;
+
+  constructor(routes: Route[]) {
+    this.app = express();
+    this.port = process.env.PORT;
+    this.env = process.env.NODE_ENV;
+    this.apiVer = process.env.API_VER;
+
+    // 순서 중요
+    this.connectToDatabase();
+    this.initializeRoutes(routes);
+    this.initializeMiddlewares();
+    this.initializeErrorHandling();
+  }
+
+  public listen() {
+    this.app.listen(this.port, () => {
+      logger.info(`NODE_ENV : ${this.env}, server on : http://localhost:${this.port}`);
+    });
+  }
+
+  public getServer() {
+    return this.app;
+  }
+
+  private connectToDatabase() {
+    createConnection(connectionOptions)
+      .then(() => {
+        logger.info('🟢 The database is connected.');
+      })
+      .catch((error: Error) => {
+        logger.error(`🔴 Unable to connect to the database: ${error}.`);
+      });
+  }
+
+  public initializeRoutes(routes: Route[]) {
+    routes.forEach(route => {
+      this.app.use(`/${this.apiVer}`, route.router);
+    });
+  }
+
+  public initializeMiddlewares() {
+    if (this.env === 'production') {
+      this.app.use(morgan('combined', { stream }));
+      this.app.use(cors({ origin: 'your.domain.com', credentials: true }));
+    } else if (this.env === 'development') {
+      this.app.use(morgan('dev', { stream }));
+      this.app.use(cors({ origin: true, credentials: true }));
+    }
+
+    this.app.use(hpp());
+    this.app.use(helmet());
+    this.app.use(compression());
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(cookieParser());
+  }
+
+  private initializeErrorHandling() {
+    this.app.use(errorMiddleware);
+  }
+}
+
+export default App;
