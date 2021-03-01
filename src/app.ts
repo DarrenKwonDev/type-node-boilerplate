@@ -39,13 +39,13 @@ class App {
     this.initializeErrorHandling();
   }
 
-  public listen() {
+  public listen(): void {
     this.app.listen(this.port, () => {
       logger.info(`NODE_ENV : ${this.env}, server on : http://localhost:${this.port}`);
     });
   }
 
-  public getServer() {
+  public getServer(): Express.Application {
     return this.app;
   }
 
@@ -59,13 +59,13 @@ class App {
       });
   }
 
-  public initializeRoutes(routes: Route[]) {
+  public initializeRoutes(routes: Route[]): void {
     routes.forEach(route => {
       this.app.use(`/${this.apiVer}`, route.router);
     });
   }
 
-  public initializeMiddlewares() {
+  public initializeMiddlewares(): void {
     if (this.env === 'production') {
       this.app.use(morgan('combined', { stream }));
       this.app.use(cors({ origin: 'your.domain.com', credentials: true }));
